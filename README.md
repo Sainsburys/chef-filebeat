@@ -1,5 +1,4 @@
-filebeat Cookbook
-================
+# filebeat Cookbook
 
 [![Cookbook](https://img.shields.io/github/tag/vkhatri/chef-filebeat.svg)](https://github.com/vkhatri/chef-filebeat) [![Build Status](https://travis-ci.org/vkhatri/chef-filebeat.svg?branch=master)](https://travis-ci.org/vkhatri/chef-filebeat)
 
@@ -33,7 +32,6 @@ https://github.com/vkhatri/chef-filebeat
 - Fedora
 - Ubuntu
 - Debian
-- Mac OSX
 
 Also works on Solaris zones given a physical Solaris 11.2 server. For that, use the .kitchen.zone.yml file. Check usage at (https://github.com/criticalmass/kitchen-zone). You will need an url to a filebeat package that works on Solaris 11.2. Checkout Building-Filebeat-On-Solaris11.md for instructions to build a filebeat package.
 
@@ -48,7 +46,6 @@ This cookbook is tested against current Chef version. But, the cookbook is known
 
 ## Cookbook Dependency
 
-- `homebrew`
 - `elastic_repo`
 - `yum-plugin-versionlock`
 - `runit`
