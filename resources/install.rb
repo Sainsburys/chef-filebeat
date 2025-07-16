@@ -86,7 +86,28 @@ action :create do
           pin_priority '700'
         end
       end
-    when 'fedora', 'rhel', 'amazon'
+    when 'rhel', 'amazon'
+      case
+      when node['platform_version'].to_i < 8
+        include_recipe 'yum-plugin-versionlock::default'
+
+        unless new_resource.ignore_package_version # ~FC023
+          yum_version_lock 'filebeat' do
+            version new_resource.version
+            release new_resource.release
+            action :update
+          end
+        end
+      else
+        %w(
+          dnf-plugins-core
+          python3-dnf-plugin-versionlock
+        ).each do |pkg|
+          package pkg
+        end
+        execute "dnf versionlock add filebeat-0:#{new_resource.version}"
+      end
+    when 'fedora'
       include_recipe 'yum-plugin-versionlock::default'
 
       unless new_resource.ignore_package_version # ~FC023
