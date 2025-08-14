@@ -4,6 +4,7 @@
 #
 
 resource_name :filebeat_install
+provides :filebeat_install
 
 property :version, String, default: '7.6.2'
 property :release, String, default: '1'
@@ -32,30 +33,6 @@ action :create do
   with_run_context(:root) do
     edit_resource(:service, new_resource.service_name) do
       action :nothing
-    end
-  end
-
-  ## install filebeat MacOS
-  if platform?('mac_os_x')
-    include_recipe 'homebrew'
-
-    # The brew package does not create the 'filebeat' directory in '/etc'.
-    directory '/etc/filebeat' do
-      action :create
-      mode '755'
-      owner 'root'
-      group 'wheel'
-    end
-
-    # Need to drop the .plist file before the package install as brew will try to start the service immediately.
-    cookbook_file '/Library/LaunchDaemons/co.elastic.filebeat.plist' do
-      action :create
-      content 'co.elastic.filebeat.plist'
-    end
-
-    # This install depends on brew for the installation of filebeat.
-    package 'filebeat' do
-      action :install
     end
   end
 
@@ -109,7 +86,28 @@ action :create do
           pin_priority '700'
         end
       end
-    when 'fedora', 'rhel', 'amazon'
+    when 'rhel', 'amazon'
+      case
+      when node['platform_version'].to_i < 8
+        include_recipe 'yum-plugin-versionlock::default'
+
+        unless new_resource.ignore_package_version # ~FC023
+          yum_version_lock 'filebeat' do
+            version new_resource.version
+            release new_resource.release
+            action :update
+          end
+        end
+      else
+        %w(
+          dnf-plugins-core
+          python3-dnf-plugin-versionlock
+        ).each do |pkg|
+          package pkg
+        end
+        execute "dnf versionlock add filebeat-0:#{new_resource.version}"
+      end
+    when 'fedora'
       include_recipe 'yum-plugin-versionlock::default'
 
       unless new_resource.ignore_package_version # ~FC023
